@@ -1,6 +1,5 @@
 # D-Menu
  Dmenu
 
- Start the server:
-    ```bash
+ Start the server
     npm start
