@@ -19,7 +19,8 @@
     <script>
         // Set the JWT token directly in the script
         // Set the JWT token securely
-    const yourJWTToken = 'your_jwt_token_here'; // Replace with secure retrieval method
+    // const yourJWTToken = 'your_jwt_token_here'; // Replace with secure retrieval method
+    const yourJWTToken =localStorage.getItem('authToken');
 
 document.addEventListener("DOMContentLoaded", () => {
     const orderDetails = JSON.parse(localStorage.getItem("orderDetails"));
