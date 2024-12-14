@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./asset/Style/payment.css">
+</head>
+<body>
+    <div class="payment-container">
+        <h2>Payment</h2>
+        <div class="total" id="totalAmount">Total: ₹0.00</div>
+        <button id="payNowBtn">Pay Now</button>
+        <div id="loadingIndicator" style="display: none;">Processing your payment...</div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        // Set the JWT token directly in the script
+        // Set the JWT token securely
+    const yourJWTToken = 'your_jwt_token_here'; // Replace with secure retrieval method
+
+document.addEventListener("DOMContentLoaded", () => {
+    const orderDetails = JSON.parse(localStorage.getItem("orderDetails"));
+    const totalAmount = document.getElementById("totalAmount");
+    const payNowBtn = document.getElementById("payNowBtn");
+    const loadingIndicator = document.getElementById("loadingIndicator");
+
+    // Ensure orderDetails are available
+    if (!orderDetails || !orderDetails.total) {
+        alert("No order details found. Please try again.");
+        window.location.href = "index.html";
+        return;
+    }
+
+    // Display the total amount
+    totalAmount.innerText = `Total: ₹${orderDetails.total.toFixed(2)}`;
+
+    // Generate unique orderId if not present
+    if (!orderDetails.orderId) {
+        orderDetails.orderId = "ORD" + new Date().getTime();
+        localStorage.setItem("orderDetails", JSON.stringify(orderDetails));
+    }
+
+    // Handle payment button click
+    payNowBtn.addEventListener("click", () => {
+        const options = {
+            key: "rzp_test_pDU9YNOEb6xH2F", // Replace with your Razorpay API key
+            amount: orderDetails.total * 100, // Convert to paise
+            currency: "INR",
+            name: "Your Company Name",
+            description: "Order Payment",
+            image: "https://example.com/your_logo.jpg", // Replace with your logo URL
+            handler: function (response) {
+                loadingIndicator.style.display = "none";
+                alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+
+                const paymentData = {
+                    paymentId: response.razorpay_payment_id,
+                    orderId: orderDetails.orderId,
+                    amount: orderDetails.total,
+                    currency: "INR",
+                    name: orderDetails.name,
+                    items: orderDetails.items,
+                    tableNumber: orderDetails.tableNumber || "",
+                    token: orderDetails.token || ""
+                };
+
+                orderDetails.paymentId = response.razorpay_payment_id;
+                orderDetails.paymentMethod = "UPI";
+                localStorage.setItem("orderDetails", JSON.stringify(orderDetails));
+
+                // Send payment data to the backend
+                fetch('http://127.0.0.1:5000/api/payment/order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${yourJWTToken}`,
+                    },
+                    body: JSON.stringify(paymentData),
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        return res.text().then(text => { throw new Error(text); });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    console.log('Payment data sent successfully:', data);
+                    // Redirect to bill page
+                    window.location.href = `bill.html?paymentId=${response.razorpay_payment_id}`;
+                })
+                .catch((error) => {
+                    console.error('Error sending payment data:', error.message);
+                    alert(`Failed to process payment: ${error.message}`);
+                })
+                .finally(() => {
+                    loadingIndicator.style.display = "none";
+                });
+            },
+            prefill: {
+                name: orderDetails.name,
+                email: orderDetails.email || "",
+                contact: orderDetails.contact || "",
+            },
+            notes: {
+                address: "note value"
+            },
+            theme: {
+                color: "#F37254"
+            }
+        };
+
+        loadingIndicator.style.display = "block";
+        const razorpay = new Razorpay(options);
+        razorpay.open();
+
+        razorpay.on('payment.failed', (response) => {
+            loadingIndicator.style.display = "none";
+            alert(`Payment failed: ${response.error.description}`);
+        });
+    });
+});
+
+    </script>
+</body>
+</html>

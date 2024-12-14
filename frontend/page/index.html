@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Virtual Menu QR Code for Restaurant: Contact Us, eMenu</title>
+    <link rel="stylesheet" href="./asset/Style/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="overlay"></div>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <button class="toggle-btn" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <div class="company-name">DMenu</div>
+
+        <ul class="menu">
+            <li><a href="#">Home</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Team</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+
+        <button class="login-btn" onclick="window.location.href='Register.html'">Login</button>
+    </div>
+
+    <!-- Engagement Section -->
+    <div class="engagement-section">
+        <h2>Get Involved</h2>
+        <p>Join us today and be part of the movement.</p>
+        <button class="engagement-btn start-btn" onclick="window.location.href='Register.html'">Start Now</button>
+        <button class="engagement-btn video-btn">Watch Video</button>
+    </div>
+    
+
+    <!-- Features Section -->
+    <div class="features-section">
+        <h2>Our Features</h2>
+        <p>Explore the unique features that make our platform stand out.</p>
+        <div class="features-container">
+            <div class="feature-item">
+                <div class="feature-icon">&#x1F4B3;</div> <!-- Payment Icon -->
+                <h3>Secure Payments</h3>
+                <p>Enjoy fast and secure payment options, including UPI and credit cards, for a seamless checkout experience.</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">&#x1F4DD;</div> <!-- Order Management Icon -->
+                <h3>Order Management</h3>
+                <p>Track, manage, and update your orders in real time, ensuring a smooth ordering process every time.</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">&#x1F4C8;</div> <!-- Reporting Icon -->
+                <h3>Detailed Reports</h3>
+                <p>Gain insights into order patterns, popular items, and sales statistics with our comprehensive reporting tools.</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">&#x1F514;</div> <!-- Notifications Icon -->
+                <h3>Instant Notifications</h3>
+                <p>Receive real-time notifications for order status updates, ensuring you’re always in the loop.</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">&#x1F4DA;</div> <!-- Data Export Icon -->
+                <h3>Data Export/Import</h3>
+                <p>Export and import user and order data easily with our CSV support for efficient data management.</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">&#x1F6E0;</div> <!-- Customization Icon -->
+                <h3>Customizable Dashboard</h3>
+                <p>Personalize your dashboard view with customizable settings to match your preferences and needs.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Section 
+    <div class="team-section">
+        <h2>Meet the Team</h2>
+        <div class="team-members">
+            <div class="team-member">
+                <img src="./asset/image/ceo.png" alt="Team Member 1">
+                <h3>Mohammed Faisal Hasan</h3>
+                <p>CEO, Founder & Lead Developer</p>
+                <div class="social-icons">
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="team-member">
+                <img src="./asset/image/developer.png" alt="Team Member 2">
+                <h3>John Doe</h3>
+                <p>Frontend Developer</p>
+                <div class="social-icons">
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+    </div> -->
+
+    <!-- FAQ Section -->
+    <div class="faq-section">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFAQ(1)">What is the purpose of this platform?</button>
+            <div class="faq-answer" id="faq1">
+                <p>Our platform helps restaurants implement digital menus with QR codes, allowing for easy ordering and payment integration.</p>
+            </div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFAQ(2)">How do I place an order?</button>
+            <div class="faq-answer" id="faq2">
+                <p>You can place an order by scanning the QR code at participating restaurants and selecting items from the menu.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <ul>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Terms of Service</a></li>
+            </ul>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 DigitalMenu. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Floating Button -->
+    <a href="https://wa.me/11234567890" target="_blank" id="whatsapp-button">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h3>Login</h3>
+            <form>
+                <label for="username">Username:</label><br>
+                <input type="text" id="username" name="username"><br>
+                <label for="password">Password:</label><br>
+                <input type="password" id="password" name="password"><br><br>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+
+    <script>
+        // Toggle Menu
+        function toggleMenu() {
+            const menu = document.querySelector(".menu");
+            menu.classList.toggle("active");
+            const overlay = document.querySelector(".overlay");
+            overlay.classList.toggle("active");
+        }
+
+        // Toggle FAQ Answers
+        function toggleFAQ(faqNumber) {
+            const faq = document.getElementById("faq" + faqNumber);
+            faq.classList.toggle("active");
+        }
+
+        // Close Modal
+        function closeModal() {
+            const modal = document.getElementById("loginModal");
+            modal.style.display = "none";
+        }
+    </script>
+
+</body>
+
+</html>

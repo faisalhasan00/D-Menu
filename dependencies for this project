@@ -1,0 +1,8 @@
+ npm install express
+npm install mongoose
+npm install cors
+npm install bcryptjs
+npm install dotenv
+npm install body-parser
+npm install qrcode
+npm install helmet

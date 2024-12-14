@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Menu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./asset/Style/menu.css">
+    <style>
+        /* Basic styling for UI */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .search-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .search-container input {
+            padding: 10px;
+            width: 200px;
+            margin-right: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .search-container button {
+            padding: 10px 20px;
+            background-color: #ff6f61;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px;
+        }
+
+        .menu-container,
+        .recommended-items {
+            width: 45%;
+        }
+
+        .menu-items,
+        .recommended-items .menu-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .menu-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .menu-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .price {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .loading,
+        .error-message {
+            text-align: center;
+            color: #ff6f61;
+        }
+
+        .floating-cart-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #ff6f61;
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .floating-cart-icon img {
+            width: 30px;
+            height: 30px;
+        }
+
+        .debounced-search {
+            width: 250px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1 id="restaurant-name">Restaurant Menu</h1>
+        <div class="search-container">
+            <input type="text" id="search-bar" placeholder="Search menu items..." aria-label="Search menu items" class="debounced-search">
+            <button id="search-button" aria-label="Search">Search</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="menu-container">
+            <h2>Menu Items</h2>
+            <div class="menu-items" id="menu-items">
+                <div class="loading">Loading menu items...</div>
+            </div>
+        </div>
+
+        <div class="recommended-items">
+            <h2>Recommended Items</h2>
+            <div class="menu-items" id="recommended-items">
+                <div class="loading">Loading recommended items...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-cart-icon" id="cart-icon" title="View Cart">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/shopping-cart.png" alt="Cart Icon">
+        <span id="cart-count">0</span>
+    </div>
+
+    <script>
+        const cartCountElement = document.getElementById('cart-count');
+        const menuItemsElement = document.getElementById('menu-items');
+        const recommendedItemsElement = document.getElementById('recommended-items');
+        const restaurantNameElement = document.getElementById('restaurant-name');
+        let searchTimeout;
+
+        // Update cart count from localStorage
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cartCountElement.textContent = cart.length;
+        }
+
+        // Add item to cart
+        function addToCart(itemId, itemName, itemPrice) {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const existingItem = cart.find(item => item.id === itemId);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ id: itemId, name: itemName, price: itemPrice, quantity: 1 });
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+        }
+
+        // Fetch and render menu items
+        async function fetchMenuItems(restaurantId, token) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/menu?restaurantId=${restaurantId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                if (!response.ok) throw new Error(`Failed to fetch menu: ${response.statusText}`);
+                const menuData = await response.json();
+                renderMenuItems(menuData);
+            } catch (error) {
+                console.error(error.message);
+                menuItemsElement.innerHTML = `<p class="error-message">Failed to load menu items. Please try again later.</p>`;
+            }
+        }
+
+        // Render menu items
+        function renderMenuItems(items) {
+            menuItemsElement.innerHTML = '';
+            if (items && items.length > 0) {
+                items.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.classList.add('menu-item');
+                    itemElement.innerHTML = `
+                        <img src="${item.imageUrl}" alt="${item.name}">
+                        <h3>${item.name}</h3>
+                        <p>${item.description}</p>
+                        <div class="price">₹${item.price}</div>
+                        <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})">Add to Cart</button>
+                    `;
+                    menuItemsElement.appendChild(itemElement);
+                });
+            } else {
+                menuItemsElement.innerHTML = `<p class="error-message">No menu items available.</p>`;
+            }
+        }
+
+        // Fetch restaurant details
+        async function fetchRestaurantName(restaurantId, token) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/restaurant/details?restaurantId=${restaurantId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                if (!response.ok) throw new Error(`Failed to fetch restaurant name: ${response.statusText}`);
+                const data = await response.json();
+                restaurantNameElement.textContent = data.restaurantName || 'Restaurant Menu';
+            } catch (error) {
+                console.error(error.message);
+                restaurantNameElement.textContent = 'Restaurant Menu';
+            }
+        }
+
+        // Debounced search functionality
+        function debounceSearch(query) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const items = document.querySelectorAll('.menu-item');
+                items.forEach(item => {
+                    const name = item.querySelector('h3').textContent.toLowerCase();
+                    const description = item.querySelector('p').textContent.toLowerCase();
+                    item.style.display = name.includes(query) || description.includes(query) ? '' : 'none';
+                });
+            }, 300);
+        }
+
+        // Search menu items
+        document.getElementById('search-bar').addEventListener('input', function () {
+            const query = this.value.toLowerCase().trim();
+            debounceSearch(query);
+        });
+
+        // Navigate to cart
+        document.getElementById('cart-icon').onclick = () => window.location.href = '/frontend/User/cart.html';
+
+        // Initialize page
+        function initializePage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const restaurantId = urlParams.get('restaurantId');
+            const token = localStorage.getItem('authToken'); // Get token from localStorage
+            if (!restaurantId || !token) {
+                alert('Invalid restaurant or session. Please try again.');
+                window.location.href = '/frontend/User/home.html';
+                return;
+            }
+            fetchMenuItems(restaurantId, token);
+            fetchRestaurantName(restaurantId, token);
+            updateCartCount();
+        }
+
+        // Load recommended items
+        function loadRecommendedItems() {
+            // Example static data for recommendations, you can fetch dynamically if needed
+            const recommendedItems = [
+                { id: 'r1', name: 'Pasta', price: 300, imageUrl: 'https://via.placeholder.com/250x200', description: 'Delicious Italian Pasta' },
+                { id: 'r2', name: 'Pizza', price: 500, imageUrl: 'https://via.placeholder.com/250x200', description: 'Cheesy Pizza' }
+            ];
+            recommendedItemsElement.innerHTML = '';
+            recommendedItems.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.classList.add('menu-item');
+                itemElement.innerHTML = `
+                    <img src="${item.imageUrl}" alt="${item.name}">
+                    <h3>${item.name}</h3>
+                    <p>${item.description}</p>
+                    <div class="price">₹${item.price}</div>
+                    <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})">Add to Cart</button>
+                `;
+                recommendedItemsElement.appendChild(itemElement);
+            });
+        }
+
+        // Initialize the page on load
+        window.onload = function () {
+            initializePage();
+            loadRecommendedItems();
+        };
+    </script>
+</body>
+
+</html>
